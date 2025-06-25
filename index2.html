@@ -254,8 +254,8 @@
                 // Model is google/gemma-3-27b-it:free
                 const modelName = "google/gemma-3-27b-it:free";
 
-                // Updated prompt to include food name, ingredient list, and nutrients, separated by commas
-                const prompt = "Based on the image, provide the food name, a short comma-separated list of ingredients, and a short comma-separated list of key nutrients. For example: 'Pizza, Dough, Tomato Sauce, Cheese, Pepperoni, Calories, Carbs, Protein, Fats'.";
+                // Updated prompt to include food name, ingredient list, nutrients, and health for elderly, separated by sections
+                const prompt = "Based on the image, provide the following information:\n1. Food Name:\n2. Ingredients (short, comma-separated list):\n3. Key Nutrients (short, comma-separated list):\n4. Is this food generally healthy for elderly people? (Yes/No and a very brief reason).";
                 const mimeType = imagePreview.dataset.mimeType || 'image/png'; // Use detected mime type or fallback
 
                 const payload = {
@@ -295,7 +295,8 @@
                 if (result.choices && result.choices.length > 0 &&
                     result.choices[0].message && result.choices[0].message.content) {
                     const text = result.choices[0].message.content;
-                    resultsArea.innerHTML = `<p class="text-gray-800 fade-in">${text}</p>`;
+                    // Replace newlines with <br> for HTML display
+                    resultsArea.innerHTML = `<p class="text-gray-800 fade-in">${text.replace(/\n/g, '<br>')}</p>`;
                 } else {
                     resultsArea.innerHTML = '<p class="text-red-500">No food items or nutrients detected or unexpected API response structure from OpenRouter.</p>';
                 }
