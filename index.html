@@ -254,7 +254,7 @@
                 const modelName = "google/gemma-3-27b-it:free";
 
                 // Updated prompt to only include nutrients, separated by commas
-                const prompt = "Please identify the food items in this image and provide a short, comma-separated list of key nutrients. For example: 'Calories, Carbs, Protein'.";
+                const prompt = "Based on the image, please provide a short, comma-separated list of key nutrients. For example: 'Calories, Carbs, Protein, Fats'.";
                 const mimeType = imagePreview.dataset.mimeType || 'image/png'; // Use detected mime type or fallback
 
                 const payload = {
@@ -296,7 +296,7 @@
                     const text = result.choices[0].message.content;
                     resultsArea.innerHTML = `<p class="text-gray-800 fade-in">${text}</p>`;
                 } else {
-                    resultsArea.innerHTML = '<p class="text-red-500">No food items detected or unexpected API response structure from OpenRouter.</p>';
+                    resultsArea.innerHTML = '<p class="text-red-500">No nutrients detected or unexpected API response structure from OpenRouter.</p>';
                 }
             } catch (error) {
                 console.error('Error detecting food:', error);
