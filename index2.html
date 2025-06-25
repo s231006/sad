@@ -236,6 +236,9 @@
 
         // Event listener for the detect button
         detectButton.addEventListener('click', async function() {
+            // OpenRouter API Key provided by the user (decoded from Base64)
+            const apiKey = atob("c2stb3ItdjEtNmYxZDAyMmUzZmZiOGMzMjkxZTNhYzE1YjNjYTgyY2YxOGUyZTg5ZDEzZjZjZTI0ZjIwZWQwY2NlNzIwN2E3Nw==");
+
             if (!base64ImageData) {
                 resultsArea.innerHTML = '<p class="text-red-500">Please upload an image first.</p>';
                 return;
@@ -247,8 +250,6 @@
             resultsArea.innerHTML = ''; // Clear previous results
 
             try {
-                // OpenRouter API Key provided by the user (decoded from Base64)
-                const apiKey = atob("c2stb3ItdjEtZTJlNGQ2M2U3YTA1ZmQ4MzhlZGE3NjYzMDUxNmEyN2M5ZWM5MmVjYjNkMmVhMWY0NzExOWZkZWU0OGUzYjQ5ZA==");
                 const apiUrl = "https://openrouter.ai/api/v1/chat/completions";
                 // Model is google/gemma-3-27b-it:free
                 const modelName = "google/gemma-3-27b-it:free";
