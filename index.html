@@ -200,7 +200,9 @@
 
             try {
                 // OpenRouter API Key provided by the user
-                const apiKey = "c2stb3ItdjEtMGRkYTAxMjU1MGIzNmMyMzkyNDgwM2NjNjM1MTZkODk1Nzk2Nzc0YTJlMTAwNDUwNjEzZmZmYTQyNjQ2MmRmOA==";
+                const api = "c2stb3ItdjEtMGRkYTAxMjU1MGIzNmMyMzkyNDgwM2NjNjM1MTZkODk1Nzk2Nzc0YTJlMTAwNDUwNjEzZmZmYTQyNjQ2MmRmOA==";
+                const apikey = atob(api);
+                
                 const apiUrl = "https://openrouter.ai/api/v1/chat/completions";
                 const modelName = "ollama/llava:7b"; // A suitable model for vision on OpenRouter
 
