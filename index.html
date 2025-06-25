@@ -250,8 +250,8 @@
                 // OpenRouter API Key provided by the user (decoded from Base64)
                 const apiKey = atob("c2stb3ItdjEtNmYxZDAyMmUzZmZiOGMzMjkxZTNhYzE1YjNjYTgyY2YxOGUyZTg5ZDEzZjZjZTI0ZjIwZWQwY2NlNzIwN2E3Nw==");
                 const apiUrl = "https://openrouter.ai/api/v1/chat/completions";
-                // Changed model to google/gemini-2.0-flash-exp:free as requested
-                const modelName = "google/gemini-2.0-flash-exp:free"; 
+                // Changed model to meta-llama/llama-4-maverick:free as requested
+                const modelName = "meta-llama/llama-4-maverick:free";
 
                 const prompt = "What food items are present in this image? Provide a detailed list and description.";
                 const mimeType = imagePreview.dataset.mimeType || 'image/png'; // Use detected mime type or fallback
