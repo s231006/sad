@@ -204,7 +204,7 @@
                 const apikey = atob(api);
                 
                 const apiUrl = "https://openrouter.ai/api/v1/chat/completions";
-                const modelName = "deepseek2"; // A suitable model for vision on OpenRouter
+                const modelName = "google/gemini-2.0-flash-exp:free"; // A suitable model for vision on OpenRouter
 
                 const prompt = "What food items are present in this image? Provide a detailed list and description.";
                 const mimeType = imagePreview.dataset.mimeType || 'image/png'; // Use detected mime type or fallback
