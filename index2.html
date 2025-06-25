@@ -152,30 +152,78 @@
         const resultsArea = document.getElementById('results-area');
 
         let base64ImageData = ''; // Store the Base64 image data
+        let currentMimeType = 'image/png'; // Default MIME type
 
-        // Event listener for image file selection
-        imageUpload.addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
+        /**
+         * Resizes an image to a maximum dimension while maintaining aspect ratio,
+         * then converts it to a Base64 data URL.
+         * @param {File} file The image file to resize.
+         * @param {number} maxWidth The maximum width for the resized image.
+         * @param {number} maxHeight The maximum height for the resized image.
+         * @returns {Promise<string>} A promise that resolves with the Base64 data URL of the resized image.
+         */
+        async function resizeImage(file, maxWidth, maxHeight) {
+            return new Promise((resolve) => {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    imagePreview.src = e.target.result;
-                    imagePreview.style.display = 'block'; // Show the image preview
-                    // Get only the base64 part, and ensure it's a valid data URI
-                    const [mimeTypePart, base64Data] = e.target.result.split(',');
-                    base64ImageData = base64Data;
-                    // Determine the actual mime type from the data URL prefix
-                    const mimeTypeMatch = mimeTypePart.match(/data:(.*?);base64/);
-                    if (mimeTypeMatch && mimeTypeMatch[1]) {
-                        imagePreview.dataset.mimeType = mimeTypeMatch[1];
-                    } else {
-                        imagePreview.dataset.mimeType = 'image/png'; // Default or fallback
-                    }
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        let width = img.width;
+                        let height = img.height;
 
-                    detectButton.disabled = false; // Enable the detect button
-                    resultsArea.innerHTML = '<p class="text-gray-600">Image loaded. Click "Detect Food" to analyze.</p>';
+                        // Calculate new dimensions
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        // Create a canvas element
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+
+                        // Draw the image onto the canvas
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Get the data URL from the canvas
+                        // Use the original file's MIME type if possible, otherwise default to image/jpeg for better compression
+                        const outputMimeType = file.type && file.type.startsWith('image/') ? file.type : 'image/jpeg';
+                        const quality = 0.9; // Adjust quality for JPEG output
+                        const dataUrl = canvas.toDataURL(outputMimeType, quality);
+                        currentMimeType = outputMimeType; // Update the global mime type
+
+                        resolve(dataUrl);
+                    };
+                    img.src = event.target.result;
                 };
                 reader.readAsDataURL(file);
+            });
+        }
+
+        // Event listener for image file selection
+        imageUpload.addEventListener('change', async function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Resize the image to a maximum of 1000 pixels (either width or height)
+                const resizedDataUrl = await resizeImage(file, 1000, 1000);
+
+                imagePreview.src = resizedDataUrl;
+                imagePreview.style.display = 'block'; // Show the image preview
+
+                // Get only the base64 part from the resized data URL
+                base64ImageData = resizedDataUrl.split(',')[1];
+                imagePreview.dataset.mimeType = currentMimeType; // Store the actual mime type used for the canvas output
+
+                detectButton.disabled = false; // Enable the detect button
+                resultsArea.innerHTML = '<p class="text-gray-600">Image loaded and resized. Click "Detect Food" to analyze.</p>';
             } else {
                 imagePreview.src = '#';
                 imagePreview.style.display = 'none';
@@ -199,14 +247,14 @@
             resultsArea.innerHTML = ''; // Clear previous results
 
             try {
-                // OpenRouter API Key provided by the user
-                const api = "c2stb3ItdjEtNmYxZDAyMmUzZmZiOGMzMjkxZTNhYzE1YjNjYTgyY2YxOGUyZTg5ZDEzZjZjZTI0ZjIwZWQwY2NlNzIwN2E3Nw==";
-                const apikey = atob(api);
-                
+                // OpenRouter API Key provided by the user (decoded from Base64)
+                const apiKey = atob("c2stb3ItdjEtNmYxZDAyMmUzZmZiOGMzMjkxZTNhYzE1YjNjYTgyY2YxOGUyZTg5ZDEzZjZjZTI0ZjIwZWQwY2NlNzIwN2E3Nw==");
                 const apiUrl = "https://openrouter.ai/api/v1/chat/completions";
-                const modelName = "google/gemini-2.0-flash-exp:free"; // A suitable model for vision on OpenRouter
+                // Model is google/gemma-3-27b-it:free
+                const modelName = "google/gemma-3-27b-it:free";
 
-                const prompt = "What food items are present in this image? Provide a detailed list and description.";
+                // Updated prompt to include nutrients, separated by commas
+                const prompt = "Please identify the food items in this image and provide a short, comma-separated list of ingredients, followed by a comma-separated list of key nutrients. For example: 'Apples, sugar, cinnamon, Calories, Carbs, Protein'.";
                 const mimeType = imagePreview.dataset.mimeType || 'image/png'; // Use detected mime type or fallback
 
                 const payload = {
