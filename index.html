@@ -250,11 +250,11 @@
                 // OpenRouter API Key provided by the user (decoded from Base64)
                 const apiKey = atob("c2stb3ItdjEtNmYxZDAyMmUzZmZiOGMzMjkxZTNhYzE1YjNjYTgyY2YxOGUyZTg5ZDEzZjZjZTI0ZjIwZWQwY2NlNzIwN2E3Nw==");
                 const apiUrl = "https://openrouter.ai/api/v1/chat/completions";
-                // Changed model to google/gemma-3-27b-it:free as requested
+                // Model is google/gemma-3-27b-it:free
                 const modelName = "google/gemma-3-27b-it:free";
 
-                // Changed prompt to request a short ingredient list separated by commas
-                const prompt = "Please identify the food items in this image and provide a short, comma-separated list of ingredients. For example: 'Apples, sugar, cinnamon'.";
+                // Updated prompt to only include nutrients, separated by commas
+                const prompt = "Please identify the food items in this image and provide a short, comma-separated list of key nutrients. For example: 'Calories, Carbs, Protein'.";
                 const mimeType = imagePreview.dataset.mimeType || 'image/png'; // Use detected mime type or fallback
 
                 const payload = {
