@@ -253,7 +253,8 @@
                 // Changed model to google/gemma-3-27b-it:free as requested
                 const modelName = "google/gemma-3-27b-it:free";
 
-                const prompt = "What food items are present in this image? Provide a detailed list and description.";
+                // Changed prompt to request a short ingredient list separated by commas
+                const prompt = "Please identify the food items in this image and provide a short, comma-separated list of ingredients. For example: 'Apples, sugar, cinnamon'.";
                 const mimeType = imagePreview.dataset.mimeType || 'image/png'; // Use detected mime type or fallback
 
                 const payload = {
