@@ -235,7 +235,7 @@
 
         // Event listener for the detect button
         detectButton.addEventListener('click', async function() {
-            // Hugging Face API Key
+            // Hugging Face API Key - Ensure this token is valid for the model you're using!
             const encodedstring = 'aGZfZVJsbG5qQ3piQktOTmJEWGlBbE1KQlJoS01Uelh5VkF5SA==';
             const HUGGING_FACE_API_TOKEN = atob(encodedstring);
 
@@ -251,6 +251,7 @@
 
             try {
                 // Hugging Face Inference API for a Visual Question Answering (VQA) model
+                // *** IMPORTANT: Verify this URL against the actual model page on Hugging Face! ***
                 const hfApiUrl = "https://api-inference.huggingface.co/models/dandelin/vilt-b32-finetuned-vqa";
                 const mimeType = imagePreview.dataset.mimeType || 'image/png'; // Use detected mime type or fallback
 
@@ -274,8 +275,17 @@
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`Hugging Face API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+                    let errorDetails = `HTTP Error: ${response.status} ${response.statusText}`;
+                    try {
+                        // Try to parse error response as JSON first
+                        const jsonError = await response.json();
+                        errorDetails += ` - ${JSON.stringify(jsonError)}`;
+                    } catch (e) {
+                        // If it's not JSON, read it as plain text
+                        const textError = await response.text();
+                        errorDetails += ` - ${textError}`;
+                    }
+                    throw new Error(`Hugging Face API error: ${errorDetails}`);
                 }
 
                 const result = await response.json();
