@@ -275,15 +275,17 @@
                 });
 
                 if (!response.ok) {
+                    // Read the response body as text ONCE
+                    const responseBodyText = await response.text();
                     let errorDetails = `HTTP Error: ${response.status} ${response.statusText}`;
+
                     try {
-                        // Try to parse error response as JSON first
-                        const jsonError = await response.json();
+                        // Try to parse the *already read text* as JSON
+                        const jsonError = JSON.parse(responseBodyText);
                         errorDetails += ` - ${JSON.stringify(jsonError)}`;
                     } catch (e) {
-                        // If it's not JSON, read it as plain text
-                        const textError = await response.text();
-                        errorDetails += ` - ${textError}`;
+                        // If parsing as JSON fails, use the raw text
+                        errorDetails += ` - ${responseBodyText}`;
                     }
                     throw new Error(`Hugging Face API error: ${errorDetails}`);
                 }
