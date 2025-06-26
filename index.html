@@ -109,7 +109,7 @@
                 const modelName = "google/gemma-3-27b-it:free";
 
                 // Updated prompt to include food name, ingredient list, nutrients, and health for elderly, separated by sections
-                const prompt = "Based on the image, provide the following information:\n1. Food Name:\n2. Ingredients (short, comma-separated list):\n3. Key Nutrients (short, comma-separated list):\n4. Is this food generally healthy for elderly people? (Yes/No and a very brief reason).";
+                const prompt = "Based on the image, provide the following information:\n1. Food Name:\n2. Ingredients (short, comma-separated list):\n3. Key Nutrients (short, comma-separated list):\n4. Is this food generally healthy for elderly people? (Yes/No and a very brief reason).\n5. Is this food generally healthy for elderly people with high blood pressure, high blood sugar, and high cholesterol? (Yes/No and a very brief reason).";
                 const mimeType = imagePreview.dataset.mimeType || 'image/png'; // Use detected mime type or fallback
 
                 const payload = {
