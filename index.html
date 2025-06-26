@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Info Generator (via OpenRouter)</title>
+    <title>Food Detector (Llama 3.2 Vision)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -113,14 +113,14 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="text-3xl font-bold text-gray-800 mb-6">Food Info Generator</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Food Detector</h1>
         <p class="text-sm text-gray-600 mb-4">
-            (Using OpenRouter: Google Gemma 2B IT - **This model is text-only. The uploaded image is for preview only; the AI does not see it.**)
+            (Using OpenRouter: Llama 3.2 Vision - This model can analyze images!)
         </p>
 
         <div class="mb-6">
             <label class="block text-gray-700 text-sm font-bold mb-2" for="image-upload">
-                Upload an image for preview (AI will use text prompt):
+                Upload a food image:
             </label>
             <div class="file-input-wrapper">
                 <input type="file" id="image-upload" accept="image/*">
@@ -130,7 +130,7 @@
         </div>
 
         <button id="detect-button" class="action-button" disabled>
-            Get Food Info
+            Detect Food
         </button>
 
         <div id="loading-indicator" class="flex items-center justify-center space-x-2">
@@ -138,11 +138,11 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span>Generating Info...</span>
+            <span>Detecting...</span>
         </div>
 
         <div id="results-area" class="fade-in">
-            <p class="text-gray-600">Upload an image for preview, then click "Get Food Info" to receive general food details based on the text prompt.</p>
+            <p class="text-gray-600">Upload an image and click "Detect Food" to see the results.</p>
         </div>
     </div>
 
@@ -225,14 +225,14 @@
                 imagePreview.dataset.mimeType = currentMimeType; // Store the actual mime type used for the canvas output
 
                 detectButton.disabled = false; // Enable the detect button
-                resultsArea.innerHTML = '<p class="text-gray-600">Image loaded and resized. Click "Get Food Info" to analyze.</p>';
+                resultsArea.innerHTML = '<p class="text-gray-600">Image loaded and resized. Click "Detect Food" to analyze.</p>';
             } else {
                 imagePreview.src = '#';
                 imagePreview.style.display = 'none';
                 base64ImageData = '';
                 imagePreview.dataset.mimeType = '';
                 detectButton.disabled = true;
-                resultsArea.innerHTML = '<p class="text-gray-600">Upload an image for preview, then click "Get Food Info" to receive general food details based on the text prompt.</p>';
+                resultsArea.innerHTML = '<p class="text-gray-600">Upload an image and click "Detect Food" to see the results.</p>';
             }
         });
 
@@ -242,8 +242,8 @@
             const encodedstring = 'c2stb3ItdjEtYTU5ODY5YmYzNTJmYzBiYjA2MDgxNzc2MDc0Zjc5ZGFlZWEwMzRlMjNkYWE4YTE4ZjAyMTcyOGFiOGViNTFkNw==';
             const API_TOKEN = atob(encodedstring); 
 
-            if (!base64ImageData) { // Image is required for preview, but not for AI input in this text-only model
-                resultsArea.innerHTML = '<p class="text-red-500">Please upload an image first for preview.</p>';
+            if (!base64ImageData) {
+                resultsArea.innerHTML = '<p class="text-red-500">Please upload an image first.</p>';
                 return;
             }
             
@@ -256,14 +256,20 @@
                 // OpenRouter API Endpoint for Chat Completions
                 const apiUrl = "https://openrouter.ai/api/v1/chat/completions"; 
                 
-                // Prompt for the text-only model.
-                // The AI does NOT see the uploaded image.
-                const textPrompt = "Provide the following information about a generic food item:\n1. Food Name:\n2. Ingredients (short, comma-separated list):\n3. Key Nutrients (short, comma-separated list):\n4. Is this food generally healthy for elderly people? (Yes/No and a very brief reason).\n5. Is this food generally healthy for elderly people with high blood pressure, high blood sugar, and high cholesterol? (Yes/No and a very brief reason).";
+                // Prompt for the multimodal model (Llama 3.2 Vision)
+                const prompt = "Based on the image, provide the following information:\n1. Food Name:\n2. Ingredients (short, comma-separated list):\n3. Key Nutrients (short, comma-separated list):\n4. Is this food generally healthy for elderly people? (Yes/No and a very brief reason).\n5. Is this food generally healthy for elderly people with high blood pressure, high blood sugar, and high cholesterol? (Yes/No and a very brief reason).";
+                const mimeType = imagePreview.dataset.mimeType || 'image/png'; // Use detected mime type or fallback
 
                 const payload = {
-                    "model": "google/gemma-3-27b-it:free", // The requested OpenRouter model
+                    "model": "meta-llama/llama-3.2-11b-vision-instruct:free", // The new vision-enabled OpenRouter model
                     "messages": [
-                        { "role": "user", "content": textPrompt }
+                        { 
+                            "role": "user", 
+                            "content": [
+                                { "type": "text", "text": prompt }, // Text part of the prompt
+                                { "type": "image_url", "image_url": { "url": `data:${mimeType};base64,${base64ImageData}` } } // Image part
+                            ]
+                        }
                     ],
                     // You can add other parameters like temperature, max_tokens here if needed
                     // "temperature": 0.7,
@@ -276,7 +282,7 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${API_TOKEN}`,
                         'HTTP-Referer': window.location.href, // Required by OpenRouter for attribution. Use your app's domain if deployed.
-                        'X-Title': 'Food Info Generator App' // Required by OpenRouter for attribution
+                        'X-Title': 'Food Detector App' // Required by OpenRouter for attribution
                     },
                     body: JSON.stringify(payload)
                 });
