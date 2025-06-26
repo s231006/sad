@@ -194,7 +194,6 @@
                         ctx.drawImage(img, 0, 0, width, height);
 
                         // Get the data URL from the canvas
-                        // Use the original file's MIME type if possible, otherwise default to image/jpeg for better compression
                         const outputMimeType = file.type && file.type.startsWith('image/') ? file.type : 'image/jpeg';
                         const quality = 0.9; // Adjust quality for JPEG output
                         const dataUrl = canvas.toDataURL(outputMimeType, quality);
@@ -220,7 +219,7 @@
 
                 // Get only the base64 part from the resized data URL
                 base64ImageData = resizedDataUrl.split(',')[1];
-                imagePreview.dataset.mimeType = currentMimeType; // Store the actual mime type used for the canvas output
+                imagePreview.dataset.mimeType = currentMimeType; // Store the actual mime type
 
                 detectButton.disabled = false; // Enable the detect button
                 resultsArea.innerHTML = '<p class="text-gray-600">Image loaded and resized. Click "Detect Food" to analyze.</p>';
@@ -236,11 +235,16 @@
 
         // Event listener for the detect button
         detectButton.addEventListener('click', async function() {
-            // OpenRouter API Key provided by the user (decoded from Base64)
-            const apiKey = atob("c2stb3ItdjEtNmYxZDAyMmUzZmZiOGMzMjkxZTNhYzE1YjNjYTgyY2YxOGUyZTg5ZDEzZjZjZTI0ZjIwZWQwY2NlNzIwN2E3Nw==");
+            // Placeholder for API key - replace with your actual OpenRouter API key
+            const apiKey = 'YOUR_OPENROUTER_API_KEY'; // Replace with your API key (avoid hardcoding in production)
 
             if (!base64ImageData) {
                 resultsArea.innerHTML = '<p class="text-red-500">Please upload an image first.</p>';
+                return;
+            }
+
+            if (apiKey === 'YOUR_OPENROUTER_API_KEY') {
+                resultsArea.innerHTML = '<p class="text-red-500">Please configure a valid OpenRouter API key in the script.</p>';
                 return;
             }
 
@@ -251,12 +255,15 @@
 
             try {
                 const apiUrl = "https://openrouter.ai/api/v1/chat/completions";
-                // Model is google/gemma-3-27b-it:free
-                const modelName = "google/gemma-3-27b-it:free";
+                const modelName = "google/gemma-2-27b-it:free"; // Updated model name (gemma-3 not available, using gemma-2)
 
-                // Updated prompt to include food name, ingredient list, nutrients, and health for elderly, separated by sections
-                const prompt = "Based on the image, provide the following information:\n1. Food Name:\n2. Ingredients (short, comma-separated list):\n3. Key Nutrients (short, comma-separated list):\n4. Is this food generally healthy for elderly people? (Yes/No and a very brief reason).";
-                const mimeType = imagePreview.dataset.mimeType || 'image/png'; // Use detected mime type or fallback
+                // Updated prompt for clarity
+                const prompt = `Analyze the provided food image and return the following in a structured format:
+1. **Food Name**: The name of the food.
+2. **Ingredients**: A short, comma-separated list of main ingredients.
+3. **Key Nutrients**: A short, comma-separated list of key nutrients.
+4. **Healthy for Elderly**: Yes/No, with a brief reason.`;
+                const mimeType = imagePreview.dataset.mimeType || 'image/png';
 
                 const payload = {
                     model: modelName,
@@ -286,25 +293,22 @@
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(`API error: ${response.status} ${response.statusText} - ${errorData.message || 'Unknown error'}`);
                 }
 
                 const result = await response.json();
 
-                if (result.choices && result.choices.length > 0 &&
-                    result.choices[0].message && result.choices[0].message.content) {
+                if (result.choices && result.choices.length > 0 && result.choices[0].message && result.choices[0].message.content) {
                     const text = result.choices[0].message.content;
-                    // Replace newlines with <br> for HTML display
                     resultsArea.innerHTML = `<p class="text-gray-800 fade-in">${text.replace(/\n/g, '<br>')}</p>`;
                 } else {
-                    resultsArea.innerHTML = '<p class="text-red-500">No food items or nutrients detected or unexpected API response structure from OpenRouter.</p>';
+                    resultsArea.innerHTML = '<p class="text-red-500">No food items detected or unexpected API response structure.</p>';
                 }
             } catch (error) {
                 console.error('Error detecting food:', error);
-                resultsArea.innerHTML = `<p class="text-red-500">Error: ${error.message}. Please try again.</p>`;
+                resultsArea.innerHTML = `<p class="text-red-500">Error: ${error.message}. Please check the API key, endpoint, or try again later.</p>`;
             } finally {
-                // Hide loading indicator and re-enable button
                 loadingIndicator.style.display = 'none';
                 detectButton.disabled = false;
             }
